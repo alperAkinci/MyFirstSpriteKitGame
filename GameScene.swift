@@ -39,14 +39,6 @@ func random(min min: CGFloat, max: CGFloat) -> CGFloat {
 }
 
 
-//Remove the projectile and monster from the scenery after collide
-func projectileDidCollideWithMonster(projectile projectile : SKSpriteNode, monster : SKSpriteNode){
-    print ("Hit")
-    monster.removeFromParent()
-    projectile.removeFromParent()
-}
-
-
 //MARK: - CGPoint Extensions
 
 extension CGPoint{
@@ -74,9 +66,10 @@ struct PhysicsCategory {
 //MARK: - GameScene Class
 class GameScene: SKScene ,SKPhysicsContactDelegate{
     
-        // Player 1 : Creating player As Sprite
+        // Decleration of plater (ninja)
         let player = SKSpriteNode(imageNamed : "player")
-
+    
+        var monsterDestroyed = 0
     
     //MARK: AddMonster to Scene
         func addMonster(){
@@ -131,9 +124,30 @@ class GameScene: SKScene ,SKPhysicsContactDelegate{
             */
         monster.runAction(SKAction.sequence([actionMove,actionMoveDone,loseAction]))
         
-    
+            
         
     }
+    
+    //Remove the projectile and monster from the scenery after collide
+    func projectileDidCollideWithMonster(projectile projectile : SKSpriteNode, monster : SKSpriteNode){
+        print ("Hit")
+        monster.removeFromParent()
+        projectile.removeFromParent()
+        
+        monsterDestroyed++
+        
+        if monsterDestroyed > 10 {
+            
+            let reveal = SKTransition.flipHorizontalWithDuration(0.5)
+            let gameOverScene = GameOverScene(size: self.size, won: true)
+            self.view?.presentScene(gameOverScene, transition: reveal)
+            
+        }
+        
+        
+    }
+    
+    
     
     //MARK: Override Methods
     override func touchesEnded(touches: Set<UITouch>, withEvent event: UIEvent?) {
@@ -163,7 +177,7 @@ class GameScene: SKScene ,SKPhysicsContactDelegate{
         let offset = touchLocation - projectile.position
         
         //4 - you cant shoot backward
-        if (offset.x)<0 { return }
+        //if (offset.x)<0 { return }
         
         //5 - Already checked the position so add projectile
         addChild(projectile)

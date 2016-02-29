@@ -20,7 +20,7 @@ class GameOverScene : SKScene {
         //Base on won parameter , set the message either "You Won" or "You Lose"
         let message = won ? "You Won!" : "You Lose :["
         
-        //Display a label text to the screen
+        //Display a winning message text to the screen
         let label = SKLabelNode(fontNamed: "Chalkduster")
         label.text = message
         label.fontSize = 40
