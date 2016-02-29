@@ -45,13 +45,18 @@ extension CGPoint{
     }
 }
 
+//MARK: - Constraints 
 
+struct PhysicsCategory {
+    static let None       : UInt32  = 0
+    static let All        : UInt32  = UInt32.max
+    static let Monster    : UInt32  = 0b1    //1
+    static let Projectile : UInt32  = 0b10   //2
+    
+}
 
 //MARK: - GameScene Class
-class GameScene: SKScene {
-    
-    
-    
+class GameScene: SKScene ,SKPhysicsContactDelegate{
     
     // Player 1 : Creating player As Sprite
     let player = SKSpriteNode(imageNamed : "player")
@@ -65,27 +70,43 @@ class GameScene: SKScene {
         return random() * (max - min) + min
     }
     
+    
+    //MARK: - AddMonster
     func addMonster(){
         
         //Create Monster Sprite
         let monster = SKSpriteNode(imageNamed: "monster")
         
+        //MARK: Physics Body Of Monster
+            //the body is defined as a rectangle of same size of the sprite
+            monster.physicsBody = SKPhysicsBody(rectangleOfSize: monster.size)
+        
+            monster.physicsBody?.dynamic = true
+        
+            monster.physicsBody?.categoryBitMask = PhysicsCategory.Monster
+        
+            //Get notified when projectile and monster intersect.
+            monster.physicsBody?.contactTestBitMask = PhysicsCategory.Projectile
+        
+            //You don’t want the monster and projectile to bounce off each other , so no collision
+            monster.physicsBody?.collisionBitMask = PhysicsCategory.None
+        
         //Where the monster spawn along the Y axis
-        let actualY = randomMinMax(min: monster.size.height/2, max: size.height - monster.size.height/2)
+            let actualY = randomMinMax(min: monster.size.height/2, max: size.height - monster.size.height/2)
         
         //Put monster slightly of screen along the right edge
-        monster.position = CGPoint(x: size.width + monster.size.width / 2 , y: actualY)
+            monster.position = CGPoint(x: size.width + monster.size.width / 2 , y: actualY)
         
         // Add the monster to the scene
-        addChild(monster)
+            addChild(monster)
         
         // Determine the speed of the monster
-        let actualDuration = randomMinMax(min: CGFloat(2.0), max: CGFloat(4.0))
+            let actualDuration = randomMinMax(min: CGFloat(2.0), max: CGFloat(4.0))
         
         // Create the actions
-        let actionMove = SKAction.moveTo(CGPoint(x: -monster.size.width/2, y: actualY), duration: NSTimeInterval(actualDuration))
+            let actionMove = SKAction.moveTo(CGPoint(x: -monster.size.width/2, y: actualY), duration: NSTimeInterval(actualDuration))
         
-        let actionMoveDone = SKAction.removeFromParent()
+            let actionMoveDone = SKAction.removeFromParent()
         
         monster.runAction(SKAction.sequence([actionMove, actionMoveDone]))
         
@@ -93,6 +114,7 @@ class GameScene: SKScene {
         
     }
     
+    //MARK: TouchesEnded
     override func touchesEnded(touches: Set<UITouch>, withEvent event: UIEvent?) {
         //1 - Choose the touch to work with
         
@@ -134,20 +156,32 @@ class GameScene: SKScene {
     }
 
     
-    
+    //MARK: DidMoveToView
     override func didMoveToView(view: SKView) {
         //Background Color of Scene
-        backgroundColor = SKColor.whiteColor()
+            backgroundColor = SKColor.whiteColor()
         
-        // Horizontally :Center , Vertically : %10
-        player.position = CGPoint(x: size.width * 0.1 , y: size.height * 0.5)
+        //Adding Player to the Scene
+            // Horizontally :Center , Vertically : %10
+            player.position = CGPoint(x: size.width * 0.1 , y: size.height * 0.5)
+            
+            // Add sprite as child of the scene
+            addChild(player)
         
-        // Add sprite as child of the scene
-        addChild(player)
+        //Physics World
+            // No gravity
+            physicsWorld.gravity = CGVectorMake(0,0)
         
-        runAction(
-            SKAction.repeatActionForever(SKAction.sequence([SKAction.runBlock(addMonster),SKAction.waitForDuration(1.0)]))
-        )
+            //When the physics collide , sets the scene as delegate to be notified
+            physicsWorld.contactDelegate = self
+        
+        //Adding Monster to the Scene
+            runAction(
+                SKAction.repeatActionForever(SKAction.sequence([SKAction.runBlock(addMonster),SKAction.waitForDuration(1.0)]))
+            )
+        
+        
+        
         
         
     }
