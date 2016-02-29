@@ -66,11 +66,12 @@ struct PhysicsCategory {
 //MARK: - GameScene Class
 class GameScene: SKScene ,SKPhysicsContactDelegate{
     
-        // Decleration of plater (ninja)
+        // Decleration of player (ninja)
         let player = SKSpriteNode(imageNamed : "player")
     
-        var monsterDestroyed = 0
     
+    var monsterDestroyed : Int = 0
+
     //MARK: AddMonster to Scene
         func addMonster(){
         
@@ -101,7 +102,7 @@ class GameScene: SKScene ,SKPhysicsContactDelegate{
             addChild(monster)
         
         //Determine the speed of the monster
-            let actualDuration = random(min: CGFloat(2.0), max: CGFloat(4.0))
+            let actualDuration = random(min: CGFloat(1.5), max: CGFloat(5.0))
         
         //Create the actions
             let actionMove = SKAction.moveTo(CGPoint(x: -monster.size.width/2, y: actualY), duration: NSTimeInterval(actualDuration))
@@ -134,9 +135,10 @@ class GameScene: SKScene ,SKPhysicsContactDelegate{
         monster.removeFromParent()
         projectile.removeFromParent()
         
+        
         monsterDestroyed++
         
-        if monsterDestroyed > 10 {
+        if monsterDestroyed > 15 {
             
             let reveal = SKTransition.flipHorizontalWithDuration(0.5)
             let gameOverScene = GameOverScene(size: self.size, won: true)
@@ -146,7 +148,6 @@ class GameScene: SKScene ,SKPhysicsContactDelegate{
         
         
     }
-    
     
     
     //MARK: Override Methods
@@ -225,6 +226,14 @@ class GameScene: SKScene ,SKPhysicsContactDelegate{
                 SKAction.repeatActionForever(SKAction.sequence([SKAction.runBlock(addMonster),SKAction.waitForDuration(1.0)]))
             )
         
+//        //MonsterKillerCounter
+//        let counter = SKLabelNode(fontNamed: "Chalkduster")
+//        counter.text = ("Killed: \(monsterDestroyed)")
+//        counter.fontSize = 10
+//        counter.fontColor = SKColor.blackColor()
+//        counter.position = (CGPoint(x: size.width*0.9, y: size.height*0.1))
+//        addChild(counter)
+        
         //Background Music
         let backgroundMusic = SKAudioNode(fileNamed: "background-music-aac.caf")
         backgroundMusic.autoplayLooped = true
@@ -257,12 +266,6 @@ class GameScene: SKScene ,SKPhysicsContactDelegate{
             
             projectileDidCollideWithMonster(projectile: firstBody.node as! SKSpriteNode , monster: secondBody.node as! SKSpriteNode)
         }
-        
-        
-        
-        
-        
-        
     }
 
     
