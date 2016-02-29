@@ -124,7 +124,6 @@ class GameScene: SKScene ,SKPhysicsContactDelegate{
     //MARK: Override Methods
     override func touchesEnded(touches: Set<UITouch>, withEvent event: UIEvent?) {
         //1 - Choose the touch to work with
-        
         guard let touch = touches.first else{
             
             return /* return will end the func immediately , no further code inside this method will be executed*/
@@ -170,6 +169,8 @@ class GameScene: SKScene ,SKPhysicsContactDelegate{
         let actionMoveDone = SKAction.removeFromParent()
         
         projectile.runAction(SKAction.sequence([actionMove,actionMoveDone]))
+        
+            runAction(SKAction.playSoundFileNamed("pew-pew-lei.caf", waitForCompletion: false))
     
     }
 
@@ -195,6 +196,13 @@ class GameScene: SKScene ,SKPhysicsContactDelegate{
             runAction(
                 SKAction.repeatActionForever(SKAction.sequence([SKAction.runBlock(addMonster),SKAction.waitForDuration(1.0)]))
             )
+        
+        //Background Music
+        let backgroundMusic = SKAudioNode(fileNamed: "background-music-aac.caf")
+        backgroundMusic.autoplayLooped = true
+        addChild(backgroundMusic)
+        
+        
     }// end of DidMoveTo func
     
     
