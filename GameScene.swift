@@ -8,7 +8,7 @@
 
 import SpriteKit
 
-//MARK: - Math Operator Fuctions
+//MARK: - Global Fuctions
 func + (left: CGPoint , right: CGPoint) -> CGPoint{
     return CGPoint(x: left.x + right.x , y : right.y + left.y)
 }
@@ -30,6 +30,22 @@ func sqrt(a: CGFloat) -> CGFloat {
     return CGFloat(sqrtf(Float(a)))
 }
 
+func random() -> CGFloat{
+    return CGFloat (Float(arc4random())/0xFFFFFFFF)
+}
+
+func random(min min: CGFloat, max: CGFloat) -> CGFloat {
+    return random() * (max - min) + min
+}
+
+
+//Remove the projectile and monster from the scenery after collide
+func projectileDidCollideWithMonster(projectile projectile : SKSpriteNode, monster : SKSpriteNode){
+    print ("Hit")
+    monster.removeFromParent()
+    projectile.removeFromParent()
+}
+
 
 //MARK: - CGPoint Extensions
 
@@ -45,7 +61,7 @@ extension CGPoint{
     }
 }
 
-//MARK: - Constraints 
+//MARK: - Constants
 
 struct PhysicsCategory {
     static let None       : UInt32  = 0
@@ -58,26 +74,17 @@ struct PhysicsCategory {
 //MARK: - GameScene Class
 class GameScene: SKScene ,SKPhysicsContactDelegate{
     
-    // Player 1 : Creating player As Sprite
-    let player = SKSpriteNode(imageNamed : "player")
+        // Player 1 : Creating player As Sprite
+        let player = SKSpriteNode(imageNamed : "player")
+
     
-    //MARK: - Random Fuctions
-    func random() -> CGFloat{
-        return CGFloat (Float(arc4random())/0xFFFFFFFF)
-    }
-    
-    func randomMinMax(min min: CGFloat, max: CGFloat) -> CGFloat {
-        return random() * (max - min) + min
-    }
-    
-    
-    //MARK: - AddMonster
-    func addMonster(){
+    //MARK: AddMonster to Scene
+        func addMonster(){
         
         //Create Monster Sprite
         let monster = SKSpriteNode(imageNamed: "monster")
         
-        //MARK: Physics Body Of Monster
+            //MARK: Physics Body Of Monster
             //the body is defined as a rectangle of same size of the sprite
             monster.physicsBody = SKPhysicsBody(rectangleOfSize: monster.size)
         
@@ -92,29 +99,29 @@ class GameScene: SKScene ,SKPhysicsContactDelegate{
             monster.physicsBody?.collisionBitMask = PhysicsCategory.None
         
         //Where the monster spawn along the Y axis
-            let actualY = randomMinMax(min: monster.size.height/2, max: size.height - monster.size.height/2)
+            let actualY = random(min: monster.size.height/2, max: size.height - monster.size.height/2)
         
         //Put monster slightly of screen along the right edge
             monster.position = CGPoint(x: size.width + monster.size.width / 2 , y: actualY)
         
-        // Add the monster to the scene
+        //Add the monster to the scene
             addChild(monster)
         
-        // Determine the speed of the monster
-            let actualDuration = randomMinMax(min: CGFloat(2.0), max: CGFloat(4.0))
+        //Determine the speed of the monster
+            let actualDuration = random(min: CGFloat(2.0), max: CGFloat(4.0))
         
-        // Create the actions
+        //Create the actions
             let actionMove = SKAction.moveTo(CGPoint(x: -monster.size.width/2, y: actualY), duration: NSTimeInterval(actualDuration))
         
             let actionMoveDone = SKAction.removeFromParent()
         
         monster.runAction(SKAction.sequence([actionMove, actionMoveDone]))
         
-        
+    
         
     }
     
-    //MARK: TouchesEnded
+    //MARK: Override Methods
     override func touchesEnded(touches: Set<UITouch>, withEvent event: UIEvent?) {
         //1 - Choose the touch to work with
         
@@ -127,6 +134,17 @@ class GameScene: SKScene ,SKPhysicsContactDelegate{
         //2 - Set up initial location of projectile(the power that ninja thrown )
         let projectile = SKSpriteNode(imageNamed: "projectile")
         projectile.position = player.position
+        
+            //MARK:Physics Body Of Projectile
+                //Circle shape of Body
+                projectile.physicsBody = SKPhysicsBody(circleOfRadius: projectile.size.width/2)
+                projectile.physicsBody?.dynamic = true
+                projectile.physicsBody?.categoryBitMask = PhysicsCategory.Projectile
+                projectile.physicsBody?.contactTestBitMask = PhysicsCategory.Monster
+                projectile.physicsBody?.collisionBitMask = PhysicsCategory.None
+            
+                projectile.physicsBody?.usesPreciseCollisionDetection = true
+                /*You also set usesPreciseCollisionDetection to true. This is important to set for fast moving bodies (like projectiles), because otherwise there is a chance that two fast moving bodies can pass through each other without a collision being detected.*/
     
         //3 - Determine offset of location to projectile
         let offset = touchLocation - projectile.position
@@ -155,8 +173,6 @@ class GameScene: SKScene ,SKPhysicsContactDelegate{
     
     }
 
-    
-    //MARK: DidMoveToView
     override func didMoveToView(view: SKView) {
         //Background Color of Scene
             backgroundColor = SKColor.whiteColor()
@@ -179,6 +195,33 @@ class GameScene: SKScene ,SKPhysicsContactDelegate{
             runAction(
                 SKAction.repeatActionForever(SKAction.sequence([SKAction.runBlock(addMonster),SKAction.waitForDuration(1.0)]))
             )
+    }// end of DidMoveTo func
+    
+    
+    //MARK: SKPhysicsContactDelegate Methods
+    func didBeginContact(contact: SKPhysicsContact) {
+        
+        //Arrangment of bodies: firstBody is small, secondBody is big
+        var firstBody : SKPhysicsBody
+        var secondBody : SKPhysicsBody
+        
+        if contact.bodyA.categoryBitMask < contact.bodyB.categoryBitMask {
+            firstBody = contact.bodyA
+            secondBody = contact.bodyB
+        }else{
+            firstBody = contact.bodyB
+            secondBody = contact.bodyA
+        }
+        
+        
+        /*Reminder: &(bitwise) operator - always evaluate both expressions
+                   &&(logical) operator - evaluates the second expression only if the first expression is true.(More Efficient)*/
+        
+        if (firstBody.categoryBitMask & PhysicsCategory.Monster != 0 ) && (secondBody.categoryBitMask & PhysicsCategory.Projectile != 0){
+            
+            projectileDidCollideWithMonster(projectile: firstBody.node as! SKSpriteNode , monster: secondBody.node as! SKSpriteNode)
+        }
+        
         
         
         
