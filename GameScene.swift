@@ -114,8 +114,22 @@ class GameScene: SKScene ,SKPhysicsContactDelegate{
             let actionMove = SKAction.moveTo(CGPoint(x: -monster.size.width/2, y: actualY), duration: NSTimeInterval(actualDuration))
         
             let actionMoveDone = SKAction.removeFromParent()
+            
+        //Display the "GameOverScene" when a monster goes off screen
+            let loseAction = SKAction.runBlock(){
+                let reveal = SKTransition.flipHorizontalWithDuration(0.5)
+                let gameOverScene = GameOverScene(size: self.size, won: false)
+                
+                self.view?.presentScene(gameOverScene, transition: reveal)
+            
+            }
         
-        monster.runAction(SKAction.sequence([actionMove, actionMoveDone]))
+        /*Important!
+            Q.Why is Lose Action First?
+            As soon as you remove a sprite from its parent, it is no longer in the scene hierarchy so no more actions will take place from that point on. So you don’t want to remove the sprite from the scene until you’ve transitioned to the lose scene.
+            
+            */
+        monster.runAction(SKAction.sequence([actionMove,actionMoveDone,loseAction]))
         
     
         
