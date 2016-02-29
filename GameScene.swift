@@ -8,12 +8,55 @@
 
 import SpriteKit
 
+//MARK: - Math Operator Fuctions
+func + (left: CGPoint , right: CGPoint) -> CGPoint{
+    return CGPoint(x: left.x + right.x , y : right.y + left.y)
+}
+
+func - (left: CGPoint, right: CGPoint) -> CGPoint {
+    return CGPoint(x: left.x - right.x, y: left.y - right.y)
+}
+
+func * (point : CGPoint , scalar : CGFloat) -> CGPoint {
+    return CGPoint (x: point.x * scalar , y: point.y * scalar)
+}
+
+func / (point : CGPoint , scalar : CGFloat) -> CGPoint {
+    return CGPoint (x : point.x / scalar , y : point.y / scalar)
+}
+
+
+func sqrt(a: CGFloat) -> CGFloat {
+    return CGFloat(sqrtf(Float(a)))
+}
+
+
+//MARK: - CGPoint Extensions
+
+extension CGPoint{
+    func length() -> CGFloat {
+        return sqrt((x*x) + (y*y))
+    }
+    
+    
+    func normalized() -> CGPoint {
+        //Operator Overloading in Swift (/)
+        return self / length()
+    }
+}
+
+
+
+//MARK: - GameScene Class
 class GameScene: SKScene {
+    
+    
+    
     
     // Player 1 : Creating player As Sprite
     let player = SKSpriteNode(imageNamed : "player")
     
-    //MARK: - Convenience Fuctions
+    //MARK: - Random Fuctions
     func random() -> CGFloat{
         return CGFloat (Float(arc4random())/0xFFFFFFFF)
     }
@@ -49,6 +92,8 @@ class GameScene: SKScene {
         
         
     }
+    
+   
 
     
     override func didMoveToView(view: SKView) {
